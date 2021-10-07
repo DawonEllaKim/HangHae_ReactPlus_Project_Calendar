@@ -2,8 +2,10 @@ import React from "react";
 import { useHistory } from "react-router-dom";
 import { useSelector, useDispatch } from "react-redux";
 import { actionCreators as calendarActions } from "../redux/modules/calendar";
-import TextField from "@material-ui/core/TextField";
-import Button from "@material-ui/core/Button";
+
+import TextField from '@mui/material/TextField';
+import Button from '@mui/material/Button';
+
 
 const AddPage = (props) => {
   const dispatch = useDispatch();
@@ -31,6 +33,8 @@ const AddPage = (props) => {
   const addCalendar = () => {
     dispatch(calendarActions.addCalendarFB(titles, backgroundcolors, dates));
   };
+
+	console.log(props.match.params.id);
 
   return (
     <>
