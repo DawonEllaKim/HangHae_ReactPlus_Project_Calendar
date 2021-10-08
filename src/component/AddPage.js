@@ -21,19 +21,16 @@ const AddPage = (props) => {
   // 일정추가 페이지에서 일정 제목 받아오는 것
   const changeTitles = (e) => {
     setTitles(e.target.value);
-    console.log("e.target.value", e.target.value);
   };
 
   // 일정추가 페이지에서 일정 날짜/시간 받아오는 것
   const changeDates = (e) => {
     setDates(e.target.value);
-    console.log("e.target.value", e.target.value);
   };
 
   // 일정추가 페이지에서 일정 그룹/색 선택 받아오는 것
   const changeBackgroundcolors = (e) => {
     setBackgroundcolors(e.target.value);
-    console.log("e.target.value", e.target.value);
   };
 
   // 일정 추가 버튼을 누르면 일어나는 것

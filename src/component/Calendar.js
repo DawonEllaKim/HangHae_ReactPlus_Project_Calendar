@@ -44,26 +44,31 @@ const Calendar = () => {
   React.useEffect(() => {
     dispatch(calendarActions.setCalendarFB());
   }, []);
+
 	// 달력 위에서 각 이벤트를 눌렀을때. 해당 이벤트의 id와 title 값을 불러온다. + 창 열림
   const openModal = (id, title) => {
     setId(id);
     setTitle(title);
     setOpen(true);
   };
+
 	// 각 이벤트에서 삭제를 눌렀을때. 삭제 액션이 일어남 + 창 닫김
   const removeItem = () => {
     dispatch(calendarActions.removeCalendarFB(id));
     setOpen(false);
   };
+
 	// 모달창 닫는 함수
   const handleClose = () => {
     setOpen(false);
   };
+
 	// 모달창에서 완료 클릭. 완료되는 액션 일어남 + 창 닫김
   const completeSchedule = () => {
     dispatch(calendarActions.completeScheduleFB(id));
     setOpen(false);
   };
+
 	// 토글 버튼을 누르면, 버튼의 글자가 바뀜 + 완성된 이벤트/전체 이벤트 보여줌
   const toggleShow = () => {
     setIsShow(!isShow);
