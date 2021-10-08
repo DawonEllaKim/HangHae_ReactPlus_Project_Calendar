@@ -1,8 +1,8 @@
 import { connectRouter } from "connected-react-router";
 import { createBrowserHistory } from "history";
-import Calendar from "./modules/calendar";
 import { createStore, combineReducers, applyMiddleware, compose } from "redux";
 import thunk from "redux-thunk";
+import Calendar from "./modules/calendar";
 
 export const history = createBrowserHistory();
 

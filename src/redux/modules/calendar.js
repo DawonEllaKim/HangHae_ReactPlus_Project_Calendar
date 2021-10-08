@@ -6,9 +6,10 @@ import moment from "moment";
 // Action Type
 const SET_CALENDAR = "SET_CALENDAR";
 const ADD_CALENDAR = "ADD_CALENDAR";
-const EDIT_CALENDAR = "EDIT_CALENDAR";
 const MODAL_SET_CALENDAR = "MODAL_SET_CALENDAR";
 const REMOVE_CALENDAR = "REMOVE_CALENDAR";
+const COMPLETE_CALENDAR = "COMPLETE_CALENDAR";
+const COMPLETED_MODE = "COMPLETED_MODE"
 
 // Action Creators
 const setCalendar = createAction(SET_CALENDAR, (calendar_list) => ({
@@ -17,15 +18,15 @@ const setCalendar = createAction(SET_CALENDAR, (calendar_list) => ({
 const addCalendar = createAction(ADD_CALENDAR, (calendar) => ({
   calendar,
 }));
-const editCalendar = createAction(EDIT_CALENDAR, (calendar_id, calendar) => ({
-  calendar_id,
-  calendar,
-}));
 const modalSetCalendar = createAction(MODAL_SET_CALENDAR, (calendar_list) => ({
   calendar_list,
 }));
 const removeCalendar = createAction(REMOVE_CALENDAR, (id) => ({
   id,
+}));
+const completeSchedule = createAction(COMPLETE_CALENDAR, (id, completed) => ({
+  id,
+	completed
 }));
 
 // Initial State
@@ -47,11 +48,7 @@ const setCalendarFB = () => {
       let calendar_list = [];
 
       docs.forEach((doc) => {
-        console.log("doc.id, doc.data()", doc.id, doc.data());
-        // console.log("", doc.id, doc.data().date);
-        // console.log(docs.id);
-        // // console.log("calendar", calendar_list[0].doc.id)
-
+        // console.log("doc.id, doc.data()", doc.id, doc.data());
         let calendar = {
           title: doc.title,
           date: doc.date,
@@ -59,16 +56,13 @@ const setCalendarFB = () => {
           id: doc.id,
           ...doc.data(),
         };
-
         calendar_list.push(calendar);
       });
-
-      // console.log("calendar_list", calendar_list);
       dispatch(setCalendar(calendar_list));
     });
   };
 };
-const addCalendarFB = (title, backgroundColor, date) => {
+const addCalendarFB = (title, backgroundColor, date, completed=false) => {
   return function (dispatch, getState, { history }) {
     const calendarDB = firestore.collection("calendar");
 
@@ -76,7 +70,8 @@ const addCalendarFB = (title, backgroundColor, date) => {
       ...initialItem,
       title: title,
       backgroundColor: backgroundColor,
-      date: moment(date).format("YYYY-MM-DD HH:mm:ss"),
+      date: moment(date).format("YYYY-MM-DD hh:mm:ss"),
+			completed: completed,
     };
     calendarDB
       .add({ ..._calendar })
@@ -88,24 +83,6 @@ const addCalendarFB = (title, backgroundColor, date) => {
       .catch((err) => {
         console.log("error", err);
       });
-  };
-};
-const editCalendarFB = (calendar_id = null, calendar = {}) => {
-  return function (dispatch, getState, { history }) {
-    const _calendar_idx = getState().post.list.findIndex(
-      (c) => c.id === calendar_id
-    );
-    // console.log(_calendar_idx)
-    const _calendar = getState().calendar.list[_calendar_idx];
-    const calendarDB = firestore.collection("calendar");
-    calendarDB
-      .doc(calendar_id)
-      .update({ ...calendar })
-      .then((doc) => {
-        dispatch(editCalendar(calendar_id, { ...calendar }));
-      });
-    // console.log("calendar_id", calendar_id);
-    dispatch(editCalendar(calendar_id));
   };
 };
 const modalSetCalendarFB = () => {
@@ -138,15 +115,26 @@ const modalSetCalendarFB = () => {
   };
 };
 const removeCalendarFB = (id) => {
-	const calendarDB = firestore.collection("calendar");
   return function (dispatch, getState, { history }) {
+    const calendarDB = firestore.collection("calendar");
     calendarDB
       .doc(id)
       .delete()
-      .then(() => {
-        dispatch(removeCalendar(id));
-      });
+      // .then(() => {dispatch(removeCalendar(id));})
+      .then(() => {dispatch(setCalendarFB());});
   };
+};
+const completeScheduleFB = (id, completed) => {
+	return function (dispatch, getState, { history }) {
+		const calendarDB = firestore.collection("calendar");
+		calendarDB
+		.doc(id)
+		.update({completed:true, backgroundColor: "black"})
+		// .update({isCompleted: !data.isCompleted})
+		// .then((res) => dispatch(completeSchedule(true, id)))
+		.then(() => {dispatch(setCalendarFB());})
+		.catch((err) => console.log(err));
+	}
 };
 
 // Reducer
@@ -160,21 +148,23 @@ export default handleActions(
       produce(state, (draft) => {
         draft.list.unshift(action.payload.calendar);
       }),
-    [EDIT_CALENDAR]: (state, action) =>
-      produce(state, (draft) => {
-        let idx = draft.list.findIndex(
-          (c) => c.id === action.payload.calendar_id
-        );
-        draft.list[idx] = { ...draft.list[idx], ...action.payload.calendar };
-      }),
     [MODAL_SET_CALENDAR]: (state, action) =>
       produce(state, (draft) => {
         draft.list = action.payload.calendar_list;
       }),
     [REMOVE_CALENDAR]: (state, action) =>
       produce(state, (draft) => {
-				draft.list.filter((c) => c.id !== action.payload.id);
+        draft.list.filter((c) => c.id !== action.payload.id);
       }),
+		[COMPLETE_CALENDAR]: (state, action) =>
+		produce(state, (draft) => {
+			let idx = draft.list.findIndex((c) => c.id === action.payload.id);
+			draft.list[idx] = { ...draft.list[idx], ...action.payload.calendar };
+		}),
+		[COMPLETED_MODE]: (state, action) =>
+		produce(state, (draft) => {
+			draft.mode = draft.mode === "all" ? "completed" : "all";
+		}),
   },
   initialState
 );
@@ -182,16 +172,14 @@ export default handleActions(
 // action creator export
 const actionCreators = {
   setCalendar,
-  addCalendar,
-  editCalendar,
   setCalendarFB,
+  addCalendar,
   addCalendarFB,
-  editCalendarFB,
-  removeCalendarFB,
-  removeCalendar,
-
   modalSetCalendar,
   modalSetCalendarFB,
+  removeCalendarFB,
+  removeCalendar,
+	completeSchedule,
+	completeScheduleFB,
 };
-
 export { actionCreators };
